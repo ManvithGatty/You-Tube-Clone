@@ -17,8 +17,10 @@ const videoSchema = new mongoose.Schema(
       required: true,
     },
     views: { type: Number, default: 0 },
-    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    dislikes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] }],
+    dislikes: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] },
+    ],
     category: { type: String, default: "General" },
     uploadDate: { type: Date, default: Date.now },
     comments: [
