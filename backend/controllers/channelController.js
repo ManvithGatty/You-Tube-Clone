@@ -15,13 +15,15 @@ export const createChannel = async (req, res) => {
       channelName,
       description,
       channelBanner,
-      owner: req.user.id
+      owner: req.user.id,
     });
 
     await channel.save();
 
     // Add channel to user's channels array
-    await User.findByIdAndUpdate(req.user.id, { $push: { channels: channel._id } });
+    await User.findByIdAndUpdate(req.user.id, {
+      $push: { channels: channel._id },
+    });
 
     res.status(201).json(channel);
   } catch (err) {
@@ -32,7 +34,10 @@ export const createChannel = async (req, res) => {
 // Get channel details
 export const getChannel = async (req, res) => {
   try {
-    const channel = await Channel.findById(req.params.id).populate("owner", "username avatar");
+    const channel = await Channel.findById(req.params.id).populate(
+      "owner",
+      "username avatar"
+    );
     if (!channel) return res.status(404).json({ message: "Channel not found" });
     res.json(channel);
   } catch (err) {

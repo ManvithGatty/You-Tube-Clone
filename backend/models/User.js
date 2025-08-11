@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     avatar: { type: String, default: "" },
-    channels: [{ type: String }] // store channel IDs as strings
+    channels: [{ type: String }], // store channel IDs as strings
   },
   { timestamps: true }
 );

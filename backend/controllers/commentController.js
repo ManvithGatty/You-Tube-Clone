@@ -10,7 +10,7 @@ export const addComment = async (req, res) => {
     const comment = {
       userId: req.user.id,
       text,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     video.comments.push(comment);

@@ -8,7 +8,8 @@ export const registerUser = async (req, res) => {
 
     // check existing user
     const existing = await User.findOne({ email });
-    if (existing) return res.status(400).json({ message: "Email already in use" });
+    if (existing)
+      return res.status(400).json({ message: "Email already in use" });
 
     // hash password
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -17,7 +18,7 @@ export const registerUser = async (req, res) => {
       username,
       email,
       password: hashedPassword,
-      avatar
+      avatar,
     });
 
     await user.save();
@@ -36,9 +37,12 @@ export const loginUser = async (req, res) => {
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+    if (!isMatch)
+      return res.status(400).json({ message: "Invalid credentials" });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     res.json({
       token,
@@ -46,8 +50,8 @@ export const loginUser = async (req, res) => {
         id: user._id,
         username: user.username,
         email: user.email,
-        avatar: user.avatar
-      }
+        avatar: user.avatar,
+      },
     });
   } catch (err) {
     res.status(500).json({ message: err.message });

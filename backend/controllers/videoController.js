@@ -4,7 +4,8 @@ import Channel from "../models/Channel.js";
 // Create Video
 export const createVideo = async (req, res) => {
   try {
-    const { title, thumbnailUrl, videoUrl, description, channelId, category } = req.body;
+    const { title, thumbnailUrl, videoUrl, description, channelId, category } =
+      req.body;
 
     const channel = await Channel.findById(channelId);
     if (!channel) return res.status(404).json({ message: "Channel not found" });
@@ -21,7 +22,7 @@ export const createVideo = async (req, res) => {
       description,
       category,
       channelId,
-      uploader: req.user.id
+      uploader: req.user.id,
     });
 
     await video.save();
@@ -39,7 +40,9 @@ export const createVideo = async (req, res) => {
 // Get all videos
 export const getVideos = async (req, res) => {
   try {
-    const videos = await Video.find().populate("uploader", "username").populate("channelId", "channelName");
+    const videos = await Video.find()
+      .populate("uploader", "username")
+      .populate("channelId", "channelName");
     res.json(videos);
   } catch (err) {
     res.status(500).json({ message: err.message });
