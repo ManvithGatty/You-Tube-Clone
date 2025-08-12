@@ -3,20 +3,16 @@ import Video from "../models/Video.js";
 // Add Comment
 export const addComment = async (req, res) => {
   try {
-    const { text } = req.body;
     const video = await Video.findById(req.params.videoId);
     if (!video) return res.status(404).json({ message: "Video not found" });
 
-    const comment = {
-      userId: req.user.id,
-      text,
-      timestamp: new Date(),
-    };
-
-    video.comments.push(comment);
+    video.comments.push({ userId: req.user.id, text: req.body.text });
     await video.save();
 
-    res.status(201).json(video.comments);
+    const updatedVideo = await Video.findById(req.params.videoId)
+      .populate("comments.userId", "username");
+
+    res.status(201).json(updatedVideo.comments);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
