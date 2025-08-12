@@ -10,7 +10,12 @@ const channelSchema = new mongoose.Schema(
     },
     description: { type: String, default: "" },
     channelBanner: { type: String, default: "" },
-    subscribers: { type: Number, default: 0 },
+    subscribers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     videos: [{ type: mongoose.Schema.Types.ObjectId, ref: "Video" }],
   },
   { timestamps: true }

@@ -92,3 +92,47 @@ export const deleteChannel = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// Subscribe / Unsubscribe toggle
+export const toggleSubscribe = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid channel ID" });
+    }
+
+    const channel = await Channel.findById(id);
+    if (!channel) {
+      return res.status(404).json({ message: "Channel not found" });
+    }
+
+    // Ensure array exists
+    if (!Array.isArray(channel.subscribers)) {
+      channel.subscribers = [];
+    }
+
+    const isSubscribed = channel.subscribers.some(
+      (subscriberId) => subscriberId.toString() === userId
+    );
+
+    if (isSubscribed) {
+      channel.subscribers = channel.subscribers.filter(
+        (subscriberId) => subscriberId.toString() !== userId
+      );
+    } else {
+      channel.subscribers.push(userId);
+    }
+
+    await channel.save();
+
+    res.json({
+      subscribed: !isSubscribed,
+      subCount: channel.subscribers.length
+    });
+  } catch (err) {
+    console.error("Subscribe error:", err);
+    res.status(500).json({ message: err.message });
+  }
+};

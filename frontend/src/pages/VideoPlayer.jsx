@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import API from "../api/axios.js";
 import { MdThumbUp, MdThumbDown } from "react-icons/md";
 import CommentsSection from "./CommentsSection.jsx";
-import { Link } from "react-router-dom";
 
 export default function VideoPlayer() {
   const { id } = useParams();
@@ -11,6 +10,10 @@ export default function VideoPlayer() {
   const [loading, setLoading] = useState(true);
   const [likes, setLikes] = useState(0);
   const [dislikes, setDislikes] = useState(0);
+  const [subscribed, setSubscribed] = useState(false);
+  const [subCount, setSubCount] = useState(0);
+
+  const loggedInUserId = localStorage.getItem("userId");
 
   useEffect(() => {
     const fetchVideo = async () => {
@@ -19,6 +22,11 @@ export default function VideoPlayer() {
         setVideo(res.data);
         setLikes(res.data.likes?.length || 0);
         setDislikes(res.data.dislikes?.length || 0);
+        setSubCount(res.data.channelId?.subscribers?.length || 0);
+
+        if (res.data.channelId?.subscribers?.includes(loggedInUserId)) {
+          setSubscribed(true);
+        }
       } catch (err) {
         console.error("Error fetching video:", err);
       } finally {
@@ -26,7 +34,7 @@ export default function VideoPlayer() {
       }
     };
     fetchVideo();
-  }, [id]);
+  }, [id, loggedInUserId]);
 
   const handleLike = async () => {
     try {
@@ -43,6 +51,17 @@ export default function VideoPlayer() {
       const res = await API.post(`/videos/${id}/dislike`);
       setLikes(res.data.likes);
       setDislikes(res.data.dislikes);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleSubscribe = async () => {
+    try {
+      if (!video?.channelId?._id) return;
+      const res = await API.post(`/channels/${video.channelId._id}/subscribe`);
+      setSubscribed(res.data.subscribed);
+      setSubCount(res.data.subCount);
     } catch (err) {
       console.error(err);
     }
@@ -67,7 +86,7 @@ export default function VideoPlayer() {
       {/* Video details */}
       <h1 className="text-xl font-bold mb-2">{video.title}</h1>
       <div className="flex justify-between items-center mb-4">
-        <div>
+        <div className="flex items-center space-x-4">
           {video.channelId?._id ? (
             <Link
               to={`/channel/${video.channelId._id}`}
@@ -78,10 +97,15 @@ export default function VideoPlayer() {
           ) : (
             <span className="text-xs text-gray-500">Unknown Channel</span>
           )}
-          <p className="text-sm text-gray-500">
-            {video.views} views •{" "}
-            {new Date(video.uploadDate).toLocaleDateString()}
-          </p>
+          <span className="text-xs text-gray-500">{subCount} subscribers</span>
+          <button
+            onClick={handleSubscribe}
+            className={`px-3 py-1 rounded text-white ${
+              subscribed ? "bg-gray-500" : "bg-red-600 hover:bg-red-700"
+            }`}
+          >
+            {subscribed ? "Subscribed" : "Subscribe"}
+          </button>
         </div>
         <div className="flex space-x-4">
           <button
