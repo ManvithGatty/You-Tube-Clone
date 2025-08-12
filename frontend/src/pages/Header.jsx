@@ -22,7 +22,11 @@ export default function Header() {
           <MdMenu size={24} />
         </button>
         <Link to="/" className="flex items-center space-x-1">
-          <img src="https://img.icons8.com/color/96/youtube-play.png" alt="YouTube" className="h-5" />
+          <img
+            src="https://img.icons8.com/color/96/youtube-play.png"
+            alt="YouTube"
+            className="h-5"
+          />
           <span className="text-lg font-bold text-gray-800">YouTube</span>
         </Link>
       </div>
@@ -36,7 +40,10 @@ export default function Header() {
           onChange={(e) => setSearch(e.target.value)}
           className="flex-1 border border-gray-300 rounded-l-full px-4 py-1 focus:outline-none focus:border-blue-500"
         />
-        <button type="submit" className="bg-gray-100 border border-l-0 border-gray-300 rounded-r-full px-4 hover:bg-gray-200">
+        <button
+          type="submit"
+          className="bg-gray-100 border border-l-0 border-gray-300 rounded-r-full px-4 hover:bg-gray-200"
+        >
           <MdSearch size={20} />
         </button>
       </form>
@@ -45,8 +52,20 @@ export default function Header() {
       <div className="flex items-center space-x-4">
         {user ? (
           <>
+            {user.channelId && (
+              <Link
+                to={`/channel/${user.channelId}`}
+                className="text-sm border border-gray-300 px-3 py-1 rounded hover:bg-gray-100"
+              >
+                My Channel
+              </Link>
+            )}
             {user.avatar && (
-              <img src={user.avatar} alt="avatar" className="w-8 h-8 rounded-full" />
+              <img
+                src={user.avatar}
+                alt="avatar"
+                className="w-8 h-8 rounded-full"
+              />
             )}
             <span className="text-sm">{user.username}</span>
             <button
@@ -58,10 +77,16 @@ export default function Header() {
           </>
         ) : (
           <>
-            <Link to="/login" className="text-sm border border-blue-500 text-blue-500 px-3 py-1 rounded hover:bg-blue-50">
+            <Link
+              to="/login"
+              className="text-sm border border-blue-500 text-blue-500 px-3 py-1 rounded hover:bg-blue-50"
+            >
               Login
             </Link>
-            <Link to="/register" className="text-sm border border-green-500 text-green-500 px-3 py-1 rounded hover:bg-green-50">
+            <Link
+              to="/register"
+              className="text-sm border border-green-500 text-green-500 px-3 py-1 rounded hover:bg-green-50"
+            >
               Register
             </Link>
           </>

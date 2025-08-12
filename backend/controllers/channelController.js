@@ -1,5 +1,6 @@
 import Channel from "../models/Channel.js";
 import User from "../models/User.js";
+import mongoose from "mongoose";
 
 // Create a channel
 export const createChannel = async (req, res) => {
@@ -34,14 +35,26 @@ export const createChannel = async (req, res) => {
 // Get channel details
 export const getChannel = async (req, res) => {
   try {
-    const channel = await Channel.findById(req.params.id).populate(
-      "owner",
-      "username avatar"
-    );
-    if (!channel) return res.status(404).json({ message: "Channel not found" });
+    // Validate ID before querying
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "Invalid channel ID" });
+    }
+
+    const channel = await Channel.findById(req.params.id)
+      .populate({
+        path: "videos",
+        select: "title thumbnailUrl views uploadDate"
+      })
+      .populate("owner", "username avatarUrl");
+
+    if (!channel) {
+      return res.status(404).json({ message: "Channel not found" });
+    }
+
     res.json(channel);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("Error fetching channel:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 

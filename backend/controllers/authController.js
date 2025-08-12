@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import Channel from "../models/Channel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -23,7 +24,21 @@ export const registerUser = async (req, res) => {
 
     await user.save();
 
-    res.status(201).json({ message: "User registered successfully" });
+    // new user has no channel yet
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    res.status(201).json({
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        avatar: user.avatar,
+        channelId: null,
+      },
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -40,6 +55,9 @@ export const loginUser = async (req, res) => {
     if (!isMatch)
       return res.status(400).json({ message: "Invalid credentials" });
 
+    // find user's channel if exists
+    const channel = await Channel.findOne({ owner: user._id });
+
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
@@ -51,6 +69,7 @@ export const loginUser = async (req, res) => {
         username: user.username,
         email: user.email,
         avatar: user.avatar,
+        channelId: channel ? channel._id : null,
       },
     });
   } catch (err) {

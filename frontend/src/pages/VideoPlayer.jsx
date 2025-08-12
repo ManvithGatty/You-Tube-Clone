@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import API from "../api/axios.js";
 import { MdThumbUp, MdThumbDown } from "react-icons/md";
 import CommentsSection from "./CommentsSection.jsx";
+import { Link } from "react-router-dom";
 
 export default function VideoPlayer() {
   const { id } = useParams();
@@ -67,14 +68,32 @@ export default function VideoPlayer() {
       <h1 className="text-xl font-bold mb-2">{video.title}</h1>
       <div className="flex justify-between items-center mb-4">
         <div>
-          <p className="text-gray-500">{video.channelId?.channelName || "Unknown Channel"}</p>
-          <p className="text-sm text-gray-500">{video.views} views • {new Date(video.uploadDate).toLocaleDateString()}</p>
+          {video.channelId?._id ? (
+            <Link
+              to={`/channel/${video.channelId._id}`}
+              className="text-xs text-gray-500 hover:underline hover:text-blue-600"
+            >
+              {video.channelId.channelName}
+            </Link>
+          ) : (
+            <span className="text-xs text-gray-500">Unknown Channel</span>
+          )}
+          <p className="text-sm text-gray-500">
+            {video.views} views •{" "}
+            {new Date(video.uploadDate).toLocaleDateString()}
+          </p>
         </div>
         <div className="flex space-x-4">
-          <button onClick={handleLike} className="flex items-center space-x-1 hover:text-blue-500">
+          <button
+            onClick={handleLike}
+            className="flex items-center space-x-1 hover:text-blue-500"
+          >
             <MdThumbUp size={22} /> <span>{likes}</span>
           </button>
-          <button onClick={handleDislike} className="flex items-center space-x-1 hover:text-red-500">
+          <button
+            onClick={handleDislike}
+            className="flex items-center space-x-1 hover:text-red-500"
+          >
             <MdThumbDown size={22} /> <span>{dislikes}</span>
           </button>
         </div>

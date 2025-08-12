@@ -38,16 +38,22 @@ export const createVideo = async (req, res) => {
 };
 
 // Get all videos
+// Get all videos
 export const getVideos = async (req, res) => {
   try {
     const videos = await Video.find()
       .populate("uploader", "username")
-      .populate("channelId", "channelName");
+      .populate({
+        path: "channelId",
+        select: "_id channelName",
+        options: { strictPopulate: false }, // prevents errors if missing
+      });
     res.json(videos);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 // Get video by ID
 export const getVideo = async (req, res) => {
