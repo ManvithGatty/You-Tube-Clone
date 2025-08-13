@@ -132,3 +132,17 @@ export const searchVideos = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// Get videos by category
+export const getVideosByCategory = async (req, res) => {
+  try {
+    const { category } = req.params;
+    const videos = await Video.find({ category: { $regex: category, $options: "i" } })
+      .populate("channelId", "channelName")
+      .sort({ uploadDate: -1 });
+
+    res.json(videos);
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};

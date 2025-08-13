@@ -5,7 +5,8 @@ import {
   getVideo,
   updateVideo,
   deleteVideo,
-  searchVideos
+  searchVideos,
+  getVideosByCategory
 } from "../controllers/videoController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
 
@@ -17,5 +18,6 @@ router.get("/search", searchVideos); //Search video
 router.get("/:id", getVideo); // Get single video
 router.put("/:id", authMiddleware, updateVideo); // Update video
 router.delete("/:id", authMiddleware, deleteVideo); // Delete video
+router.get("/category/:category", getVideosByCategory);
 
 export default router;
