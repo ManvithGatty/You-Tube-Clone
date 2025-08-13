@@ -5,6 +5,7 @@ import {
   getVideo,
   updateVideo,
   deleteVideo,
+  searchVideos
 } from "../controllers/videoController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
 
@@ -12,6 +13,7 @@ const router = express.Router();
 
 router.post("/", authMiddleware, createVideo); // Create video
 router.get("/", getVideos); // Get all videos
+router.get("/search", searchVideos); //Search video
 router.get("/:id", getVideo); // Get single video
 router.put("/:id", authMiddleware, updateVideo); // Update video
 router.delete("/:id", authMiddleware, deleteVideo); // Delete video

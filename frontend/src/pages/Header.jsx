@@ -3,16 +3,20 @@ import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../redux/authSlice.js";
 import { useState } from "react";
 import { MdMenu, MdSearch } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
 
 export default function Header() {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const [search, setSearch] = useState("");
+  const navigate = useNavigate();
 
   const handleSearch = (e) => {
-    e.preventDefault();
-    console.log("Search query:", search);
-  };
+  e.preventDefault();
+  if (search.trim()) {
+    navigate(`/search/${encodeURIComponent(search)}`);
+  }
+};
 
   return (
     <header className="bg-white shadow-sm px-4 py-2 flex items-center justify-between sticky top-0 z-50">

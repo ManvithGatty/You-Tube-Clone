@@ -102,3 +102,33 @@ export const deleteVideo = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// Search video
+export const searchVideos = async (req, res) => {
+  try {
+    const { query } = req.query;
+
+    if (!query) {
+      return res.status(400).json({ message: "Search query is required" });
+    }
+
+    const videos = await Video.find({
+      $or: [
+        { title: { $regex: query, $options: "i" } },
+        { description: { $regex: query, $options: "i" } },
+        { category: { $regex: query, $options: "i" } }
+      ]
+    })
+      .populate({
+        path: "channelId",
+        select: "_id channelName",
+        options: { strictPopulate: false } // prevents throwing error
+      })
+      .sort({ uploadDate: -1 });
+
+    res.json(videos);
+  } catch (err) {
+    console.error("Search error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};

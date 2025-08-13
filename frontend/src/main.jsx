@@ -14,6 +14,7 @@ const Login = lazy(() => import("./pages/Login.jsx"));
 const Register = lazy(() => import("./pages/Register.jsx"));
 const VideoPlayer = lazy(() => import("./pages/VideoPlayer.jsx"));
 const ChannelPage = lazy(() => import("./pages/ChannelPage.jsx"));
+const SearchResults = lazy(() => import("./pages/SearchResults.jsx"));
 
 const router = createBrowserRouter([
   {
@@ -25,6 +26,7 @@ const router = createBrowserRouter([
       { path: "register", element: <Register /> },
       { path: "video/:id", element: <VideoPlayer /> },
       { path: "channel/:id", element: <ChannelPage /> },
+      { path: "/search/:query", element: <SearchResults /> },
     ],
   },
 ]);
