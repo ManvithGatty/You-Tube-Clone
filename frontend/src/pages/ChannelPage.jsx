@@ -68,7 +68,6 @@ export default function ChannelPage() {
       const updatedUser = { ...user, channelId: res.data._id };
       dispatch(setCredentials({ user: updatedUser, token }));
       localStorage.setItem("user", JSON.stringify(updatedUser));
-
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong");
     } finally {
@@ -88,7 +87,7 @@ export default function ChannelPage() {
           thumbnailUrl,
           videoUrl,
           category,
-          channelId
+          channelId,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -140,7 +139,9 @@ export default function ChannelPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">Channel Banner URL</label>
+            <label className="block text-sm font-medium">
+              Channel Banner URL
+            </label>
             <input
               type="text"
               value={channelBanner}
@@ -160,6 +161,30 @@ export default function ChannelPage() {
       </div>
     );
   }
+  // Subscribe / Unsubscribe
+  const handleSubscribeToggle = async () => {
+    try {
+      const res = await API.post(
+        `/channels/${channelId}/subscribe`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // Update subscriber list/count without re-fetch
+      setChannel((prev) => ({
+        ...prev,
+        subscribers: res.data.subscribers || prev.subscribers,
+      }));
+
+      alert(res.data.subscribed ? "Subscribed!" : "Unsubscribed!");
+    } catch (err) {
+      console.error("Subscribe error:", err);
+      alert(err.response?.data?.message || "Error subscribing");
+    }
+  };
+  const isOwner =
+    (channel.owner?._id && channel.owner._id === user?.id) ||
+    (typeof channel.owner === "string" && channel.owner === user?.id);
 
   return (
     <div className="p-4">
@@ -168,14 +193,15 @@ export default function ChannelPage() {
         style={{
           backgroundImage: `url(${channel.channelBanner || ""})`,
           backgroundSize: "cover",
-          backgroundPosition: "center"
+          backgroundPosition: "center",
         }}
       ></div>
       <h1 className="text-2xl font-bold mt-4">{channel.channelName}</h1>
       <p className="text-gray-600">{channel.description}</p>
 
       {/* Upload button for owner */}
-      {channel.owner === user?.id && (
+      {/* Owner sees upload button, others see subscribe button */}
+      {isOwner ? (
         <div className="mt-4">
           <button
             onClick={() => setShowUploadForm(!showUploadForm)}
@@ -184,11 +210,25 @@ export default function ChannelPage() {
             {showUploadForm ? "Cancel" : "Upload Video"}
           </button>
         </div>
+      ) : (
+        <div className="mt-4">
+          <button
+            onClick={handleSubscribeToggle}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+          >
+            {channel.subscribers?.includes(user?.id)
+              ? "Unsubscribe"
+              : "Subscribe"}
+          </button>
+        </div>
       )}
 
       {/* Upload form */}
       {showUploadForm && (
-        <form onSubmit={handleUploadVideo} className="mt-4 space-y-4 bg-gray-50 p-4 rounded">
+        <form
+          onSubmit={handleUploadVideo}
+          className="mt-4 space-y-4 bg-gray-50 p-4 rounded"
+        >
           <input
             type="text"
             placeholder="Video Title"

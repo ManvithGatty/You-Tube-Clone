@@ -96,11 +96,14 @@ export const deleteChannel = async (req, res) => {
 // Subscribe / Unsubscribe toggle
 export const toggleSubscribe = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params; // channel ID
     const userId = req.user.id;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Invalid channel ID" });
+    }
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid user ID" });
     }
 
     const channel = await Channel.findById(id);
@@ -108,21 +111,18 @@ export const toggleSubscribe = async (req, res) => {
       return res.status(404).json({ message: "Channel not found" });
     }
 
-    // Ensure array exists
-    if (!Array.isArray(channel.subscribers)) {
-      channel.subscribers = [];
-    }
-
     const isSubscribed = channel.subscribers.some(
       (subscriberId) => subscriberId.toString() === userId
     );
 
     if (isSubscribed) {
+      // Unsubscribe
       channel.subscribers = channel.subscribers.filter(
         (subscriberId) => subscriberId.toString() !== userId
       );
     } else {
-      channel.subscribers.push(userId);
+      // Subscribe
+      channel.subscribers.push(new mongoose.Types.ObjectId(userId));
     }
 
     await channel.save();
@@ -133,6 +133,6 @@ export const toggleSubscribe = async (req, res) => {
     });
   } catch (err) {
     console.error("Subscribe error:", err);
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: "Server error" });
   }
 };
