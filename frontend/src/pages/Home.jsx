@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import API from "../api/axios";
-import Sidebar from "./Sidebar.jsx";
 import { Link } from "react-router-dom";
 
 export default function Home() {
@@ -32,7 +31,6 @@ export default function Home() {
 
   return (
     <div className="flex">
-      <Sidebar />
 
       <div className="flex-1 p-4">
         {/* Category Filter */}

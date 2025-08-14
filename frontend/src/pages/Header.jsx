@@ -1,10 +1,11 @@
+// Header.jsx
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../redux/authSlice.js";
 import { useState } from "react";
 import { MdMenu, MdSearch } from "react-icons/md";
 
-export default function Header() {
+export default function Header({ collapsed, setCollapsed }) {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const [search, setSearch] = useState("");
@@ -30,7 +31,11 @@ export default function Header() {
     <header className="bg-white shadow-sm px-4 py-2 flex items-center justify-between sticky top-0 z-50">
       {/* Left Section */}
       <div className="flex items-center space-x-4">
-        <button className="p-2 hover:bg-gray-200 rounded-full">
+        {/* Collapse Toggle */}
+        <button
+          className="p-2 hover:bg-gray-200 rounded-full"
+          onClick={() => setCollapsed(!collapsed)}
+        >
           <MdMenu size={24} />
         </button>
         <Link to="/" className="flex items-center space-x-1">
@@ -64,7 +69,6 @@ export default function Header() {
       <div className="flex items-center space-x-4">
         {user ? (
           <>
-            {/* Avatar and Username link to My Channel */}
             {user.avatar && (
               <img
                 src={user.avatar}
