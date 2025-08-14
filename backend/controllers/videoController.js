@@ -61,12 +61,17 @@ export const createVideo = async (req, res) => {
 export const getVideos = async (req, res) => {
   try {
     const videos = await Video.find()
-      .populate("uploader", "username")
+      .populate("uploader", "username avatar") // keep uploader's basic info
       .populate({
         path: "channelId",
-        select: "_id channelName",
-        options: { strictPopulate: false },
-      });
+        select: "_id channelName owner",
+        populate: {
+          path: "owner",
+          select: "username avatar", // only send needed fields
+        },
+      })
+      .sort({ uploadDate: -1 });
+
     res.json(videos);
   } catch (err) {
     console.error("Error fetching videos:", err);
@@ -156,10 +161,14 @@ export const searchVideos = async (req, res) => {
         { category: { $regex: query, $options: "i" } },
       ],
     })
+      .populate("uploader", "username avatar")
       .populate({
         path: "channelId",
-        select: "_id channelName",
-        options: { strictPopulate: false },
+        select: "_id channelName owner",
+        populate: {
+          path: "owner",
+          select: "username avatar",
+        },
       })
       .sort({ uploadDate: -1 });
 
@@ -177,7 +186,15 @@ export const getVideosByCategory = async (req, res) => {
     const videos = await Video.find({
       category: { $regex: category, $options: "i" },
     })
-      .populate("channelId", "channelName")
+      .populate("uploader", "username avatar")
+      .populate({
+        path: "channelId",
+        select: "_id channelName owner",
+        populate: {
+          path: "owner",
+          select: "username avatar",
+        },
+      })
       .sort({ uploadDate: -1 });
 
     res.json(videos);

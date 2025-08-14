@@ -32,15 +32,18 @@ export const createChannel = async (req, res) => {
   }
 };
 
+
 // Get channel details
 export const getChannel = async (req, res) => {
   try {
-    // Validate ID before querying
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    const channelId = req.params.id;
+
+    // Validate ID
+    if (!mongoose.Types.ObjectId.isValid(channelId)) {
       return res.status(400).json({ message: "Invalid channel ID" });
     }
 
-    const channel = await Channel.findById(req.params.id)
+    const channel = await Channel.findById(channelId)
       .populate({
         path: "videos",
         select: "title thumbnailUrl views uploadDate"
@@ -51,12 +54,24 @@ export const getChannel = async (req, res) => {
       return res.status(404).json({ message: "Channel not found" });
     }
 
-    res.json(channel);
+    // Shape the response to always include these fields
+    res.json({
+      _id: channel._id,
+      channelName: channel.channelName,
+      description: channel.description,
+      channelBanner: channel.channelBanner,
+      owner: channel.owner,
+      videos: channel.videos,
+      subscriberIds: channel.subscribers.map(id => id.toString()),
+      subCount: channel.subscribers.length
+    });
   } catch (err) {
     console.error("Error fetching channel:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
 
 // Update channel
 export const updateChannel = async (req, res) => {
@@ -94,19 +109,20 @@ export const deleteChannel = async (req, res) => {
 };
 
 // Subscribe / Unsubscribe toggle
+// Subscribe / Unsubscribe toggle
 export const toggleSubscribe = async (req, res) => {
   try {
-    const { id } = req.params; // channel ID
+    const { id: channelId } = req.params; // channel ID
     const userId = req.user.id;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    if (!mongoose.Types.ObjectId.isValid(channelId)) {
       return res.status(400).json({ message: "Invalid channel ID" });
     }
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ message: "Invalid user ID" });
     }
 
-    const channel = await Channel.findById(id);
+    const channel = await Channel.findById(channelId);
     if (!channel) {
       return res.status(404).json({ message: "Channel not found" });
     }
@@ -127,14 +143,29 @@ export const toggleSubscribe = async (req, res) => {
 
     await channel.save();
 
+    // Populate owner for response
+    const populatedChannel = await Channel.findById(channelId)
+      .populate({
+        path: "videos",
+        select: "title thumbnailUrl views uploadDate"
+      })
+      .populate("owner", "username avatarUrl");
+
     res.json({
-      subscribed: !isSubscribed,
-      subscribers: channel.subscribers, // full updated list
-      subCount: channel.subscribers.length
+      _id: populatedChannel._id,
+      channelName: populatedChannel.channelName,
+      description: populatedChannel.description,
+      channelBanner: populatedChannel.channelBanner,
+      owner: populatedChannel.owner,
+      videos: populatedChannel.videos,
+      subscriberIds: populatedChannel.subscribers.map(id => id.toString()),
+      subCount: populatedChannel.subscribers.length,
+      subscribed: !isSubscribed
     });
   } catch (err) {
     console.error("Subscribe error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
 

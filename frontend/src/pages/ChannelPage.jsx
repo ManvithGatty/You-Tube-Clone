@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import API from "../api/axios";
 import { useSelector, useDispatch } from "react-redux";
 import { setCredentials } from "../redux/authSlice.js";
-import { Link } from "react-router-dom";
 
 export default function ChannelPage() {
   const { id: channelId } = useParams();
@@ -30,19 +29,29 @@ export default function ChannelPage() {
   const [category, setCategory] = useState("");
   const [uploading, setUploading] = useState(false);
 
-  // Fetch channel
+  // Fetch channel or prepare to create
   useEffect(() => {
+    // Case 1: Logged-in user visits their own channel link but has no channel → create form
+    if (user?.id && !user?.channelId && channelId === user?.id) {
+      setLoading(false);
+      return;
+    }
+
+    // Case 2: Invalid MongoDB ObjectId → error
+    if (!channelId || !/^[0-9a-fA-F]{24}$/.test(channelId)) {
+      setError("Invalid channel ID");
+      setLoading(false);
+      return;
+    }
+
+    // Case 3: Fetch existing channel
     const fetchChannel = async () => {
-      if (!channelId) {
-        setLoading(false);
-        return;
-      }
       try {
         const res = await API.get(`/channels/${channelId}`);
         setChannel(res.data);
       } catch (err) {
         if (err.response?.status === 404) {
-          setChannel(null);
+          setError("Channel not found");
         } else {
           setError("Failed to load channel");
         }
@@ -51,7 +60,7 @@ export default function ChannelPage() {
       }
     };
     fetchChannel();
-  }, [channelId]);
+  }, [channelId, user]);
 
   // Create channel
   const handleCreateChannel = async (e) => {
@@ -135,8 +144,8 @@ export default function ChannelPage() {
 
   if (loading) return <div className="p-4">Loading...</div>;
 
-  // If no channelId in Redux user → show create form
-  if (!user?.channelId) {
+  // CREATE FORM VIEW
+  if (user?.id === channelId && !user?.channelId) {
     return (
       <div className="max-w-lg mx-auto p-6">
         <h1 className="text-2xl font-bold mb-4">Create Your Channel</h1>
@@ -162,9 +171,7 @@ export default function ChannelPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">
-              Channel Banner URL
-            </label>
+            <label className="block text-sm font-medium">Channel Banner URL</label>
             <input
               type="text"
               value={channelBanner}
@@ -185,6 +192,12 @@ export default function ChannelPage() {
     );
   }
 
+  // ERROR VIEW
+  if (error) {
+    return <div className="p-4 text-red-600">{error}</div>;
+  }
+
+  // CHANNEL VIEW
   return (
     <div className="p-4">
       <div
@@ -289,7 +302,6 @@ export default function ChannelPage() {
                 .toLowerCase()
                 .replace(/[^a-z0-9]+/g, "-")
                 .replace(/(^-|-$)+/g, "");
-
               return (
                 <Link
                   key={video._id}

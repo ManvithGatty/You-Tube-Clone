@@ -18,12 +18,13 @@ export default function Header() {
   };
 
   const goToMyChannel = () => {
-    if (user?.channelId) {
-      navigate(`/channel/${user.channelId}`);
-    } else {
-      navigate(`/channel`); // no id, ChannelPage will show create form
-    }
-  };
+  if (user?.channelId) {
+    navigate(`/channel/${user.channelId}`);
+  } else {
+    // Pass user.id so ChannelPage knows it's the owner visiting their own channel
+    navigate(`/channel/${user.id}`);
+  }
+};
 
   return (
     <header className="bg-white shadow-sm px-4 py-2 flex items-center justify-between sticky top-0 z-50">

@@ -8,7 +8,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  const categories = ["All", "Music", "Gaming", "Education", "Sports", "News","Anime"];
+  const categories = ["All", "Music", "Gaming", "Education", "Sports", "News", "Anime"];
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -67,9 +67,12 @@ export default function Home() {
               <div className="mt-2 flex space-x-2">
                 <Link to={`/channel/${video.channelId?._id}`}>
                   <img
-                    src="https://via.placeholder.com/40"
+                    src={
+                      video.channelId?.owner?.avatar ||
+                      "https://via.placeholder.com/40"
+                    }
                     alt="channel"
-                    className="rounded-full w-10 h-10"
+                    className="rounded-full w-10 h-10 object-cover"
                   />
                 </Link>
 
