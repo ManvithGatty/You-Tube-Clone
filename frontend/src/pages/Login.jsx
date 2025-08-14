@@ -19,7 +19,13 @@ export default function Login() {
     setError("");
     try {
       const res = await API.post("/auth/login", formData);
-      dispatch(setCredentials(res.data));
+
+      // Make sure res.data contains both token and user
+      const { token, user } = res.data;
+
+      // Save to Redux and localStorage
+      dispatch(setCredentials({ user, token }));
+
       navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");

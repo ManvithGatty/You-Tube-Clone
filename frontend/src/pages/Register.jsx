@@ -23,12 +23,21 @@ export default function Register() {
     e.preventDefault();
     setError("");
     try {
+      // Register the user
       await API.post("/auth/register", formData);
+
+      // Auto login after register
       const res = await API.post("/auth/login", {
         email: formData.email,
         password: formData.password,
       });
-      dispatch(setCredentials(res.data));
+
+      // Extract token & user
+      const { token, user } = res.data;
+
+      // Save to Redux & localStorage
+      dispatch(setCredentials({ user, token }));
+
       navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed");

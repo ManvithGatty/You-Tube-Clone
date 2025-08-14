@@ -110,6 +110,25 @@ export default function ChannelPage() {
     }
   };
 
+  // Subscribe / Unsubscribe
+  const handleSubscribeToggle = async () => {
+    try {
+      const res = await API.post(
+        `/channels/${channelId}/subscribe`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setChannel((prev) => ({
+        ...prev,
+        subscribers: res.data.subscribers || prev.subscribers,
+      }));
+    } catch (err) {
+      console.error("Subscribe error:", err);
+      alert(err.response?.data?.message || "Error subscribing");
+    }
+  };
+
   if (loading) return <div className="p-4">Loading...</div>;
 
   // Show create form if no channel found
@@ -161,27 +180,7 @@ export default function ChannelPage() {
       </div>
     );
   }
-  // Subscribe / Unsubscribe
-  const handleSubscribeToggle = async () => {
-    try {
-      const res = await API.post(
-        `/channels/${channelId}/subscribe`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
 
-      // Update subscriber list/count without re-fetch
-      setChannel((prev) => ({
-        ...prev,
-        subscribers: res.data.subscribers || prev.subscribers,
-      }));
-
-      alert(res.data.subscribed ? "Subscribed!" : "Unsubscribed!");
-    } catch (err) {
-      console.error("Subscribe error:", err);
-      alert(err.response?.data?.message || "Error subscribing");
-    }
-  };
   const isOwner =
     (channel.owner?._id && channel.owner._id === user?.id) ||
     (typeof channel.owner === "string" && channel.owner === user?.id);
@@ -197,9 +196,11 @@ export default function ChannelPage() {
         }}
       ></div>
       <h1 className="text-2xl font-bold mt-4">{channel.channelName}</h1>
+      <p className="text-gray-500">
+        {channel.subscribers?.length || 0} subscribers
+      </p>
       <p className="text-gray-600">{channel.description}</p>
 
-      {/* Upload button for owner */}
       {/* Owner sees upload button, others see subscribe button */}
       {isOwner ? (
         <div className="mt-4">
@@ -216,7 +217,9 @@ export default function ChannelPage() {
             onClick={handleSubscribeToggle}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
           >
-            {channel.subscribers?.includes(user?.id)
+            {channel.subscribers?.some(
+              (sub) => sub.toString() === user?.id
+            )
               ? "Unsubscribe"
               : "Subscribe"}
           </button>
