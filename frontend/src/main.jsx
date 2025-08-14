@@ -24,14 +24,13 @@ const router = createBrowserRouter([
       { index: true, element: <Home /> },
       { path: "login", element: <Login /> },
       { path: "register", element: <Register /> },
-      { path: "video/:id", element: <VideoPlayer /> },
-      { path: "video/:id/:slug", element: <VideoPlayer /> },
+      { path: "video/:id/:slug?", element: <VideoPlayer /> },
       {
         path: "channel",
         element: <ChannelPage />,
       },
       { path: "channel/:id", element: <ChannelPage /> },
-      { path: "/search/:query", element: <SearchResults /> },
+      { path: "search/:query", element: <SearchResults /> },
     ],
   },
 ]);
