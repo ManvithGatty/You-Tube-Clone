@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import API from "../api/axios";
 import { useSelector, useDispatch } from "react-redux";
 import { setCredentials } from "../redux/authSlice.js";
+import { Link } from "react-router-dom";
 
 export default function ChannelPage() {
   const { id: channelId } = useParams();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user, token } = useSelector((state) => state.auth);
 
@@ -28,8 +30,13 @@ export default function ChannelPage() {
   const [category, setCategory] = useState("");
   const [uploading, setUploading] = useState(false);
 
+  // Fetch channel
   useEffect(() => {
     const fetchChannel = async () => {
+      if (!channelId) {
+        setLoading(false);
+        return;
+      }
       try {
         const res = await API.get(`/channels/${channelId}`);
         setChannel(res.data);
@@ -43,14 +50,10 @@ export default function ChannelPage() {
         setLoading(false);
       }
     };
-
-    if (channelId) {
-      fetchChannel();
-    } else {
-      setLoading(false);
-    }
+    fetchChannel();
   }, [channelId]);
 
+  // Create channel
   const handleCreateChannel = async (e) => {
     e.preventDefault();
     setCreating(true);
@@ -62,12 +65,11 @@ export default function ChannelPage() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setChannel(res.data);
-
-      // Update Redux + localStorage with new channelId
       const updatedUser = { ...user, channelId: res.data._id };
       dispatch(setCredentials({ user: updatedUser, token }));
       localStorage.setItem("user", JSON.stringify(updatedUser));
+
+      navigate(`/channel/${res.data._id}`);
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong");
     } finally {
@@ -75,6 +77,7 @@ export default function ChannelPage() {
     }
   };
 
+  // Upload video
   const handleUploadVideo = async (e) => {
     e.preventDefault();
     setUploading(true);
@@ -91,12 +94,8 @@ export default function ChannelPage() {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      // Refresh channel data
       const res = await API.get(`/channels/${channelId}`);
       setChannel(res.data);
-
-      // Reset form
       setShowUploadForm(false);
       setTitle("");
       setVideoDescription("");
@@ -110,7 +109,7 @@ export default function ChannelPage() {
     }
   };
 
-  // Subscribe / Unsubscribe
+  // Subscribe toggle
   const handleSubscribeToggle = async () => {
     try {
       const res = await API.post(
@@ -121,18 +120,23 @@ export default function ChannelPage() {
 
       setChannel((prev) => ({
         ...prev,
-        subscribers: res.data.subscribers || prev.subscribers,
+        subscribers: res.data.subscribers,
       }));
+
+      alert(res.data.subscribed ? "Subscribed!" : "Unsubscribed!");
     } catch (err) {
-      console.error("Subscribe error:", err);
       alert(err.response?.data?.message || "Error subscribing");
     }
   };
 
+  const isOwner =
+    (channel?.owner?._id && channel.owner._id === user?.id) ||
+    (typeof channel?.owner === "string" && channel.owner === user?.id);
+
   if (loading) return <div className="p-4">Loading...</div>;
 
-  // Show create form if no channel found
-  if (!channel) {
+  // If no channelId in Redux user → show create form
+  if (!user?.channelId) {
     return (
       <div className="max-w-lg mx-auto p-6">
         <h1 className="text-2xl font-bold mb-4">Create Your Channel</h1>
@@ -181,27 +185,19 @@ export default function ChannelPage() {
     );
   }
 
-  const isOwner =
-    (channel.owner?._id && channel.owner._id === user?.id) ||
-    (typeof channel.owner === "string" && channel.owner === user?.id);
-
   return (
     <div className="p-4">
       <div
         className="h-40 bg-gray-200 rounded-lg"
         style={{
-          backgroundImage: `url(${channel.channelBanner || ""})`,
+          backgroundImage: `url(${channel?.channelBanner || ""})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
       ></div>
-      <h1 className="text-2xl font-bold mt-4">{channel.channelName}</h1>
-      <p className="text-gray-500">
-        {channel.subscribers?.length || 0} subscribers
-      </p>
-      <p className="text-gray-600">{channel.description}</p>
+      <h1 className="text-2xl font-bold mt-4">{channel?.channelName}</h1>
+      <p className="text-gray-600">{channel?.description}</p>
 
-      {/* Owner sees upload button, others see subscribe button */}
       {isOwner ? (
         <div className="mt-4">
           <button
@@ -212,21 +208,26 @@ export default function ChannelPage() {
           </button>
         </div>
       ) : (
-        <div className="mt-4">
+        <div className="flex items-center gap-3 mt-4">
           <button
             onClick={handleSubscribeToggle}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+            className={`px-4 py-2 rounded text-white transition ${
+              channel?.subscribers?.includes(user?.id)
+                ? "bg-red-600 hover:bg-red-700"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
-            {channel.subscribers?.some(
-              (sub) => sub.toString() === user?.id
-            )
-              ? "Unsubscribe"
+            {channel?.subscribers?.includes(user?.id)
+              ? "Subscribed"
               : "Subscribe"}
           </button>
+          <span className="text-gray-600 text-sm">
+            {channel?.subscribers?.length || 0} subscriber
+            {channel?.subscribers?.length !== 1 ? "s" : ""}
+          </span>
         </div>
       )}
 
-      {/* Upload form */}
       {showUploadForm && (
         <form
           onSubmit={handleUploadVideo}
@@ -279,21 +280,31 @@ export default function ChannelPage() {
         </form>
       )}
 
-      {/* Videos */}
       <div className="mt-6">
         <h2 className="text-lg font-semibold mb-2">Videos</h2>
-        {channel.videos?.length > 0 ? (
+        {channel?.videos?.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {channel.videos.map((video) => (
-              <div key={video._id} className="bg-gray-100 rounded-lg p-2">
-                <img
-                  src={video.thumbnailUrl}
-                  alt={video.title}
-                  className="rounded-lg"
-                />
-                <h3 className="text-sm font-medium mt-2">{video.title}</h3>
-              </div>
-            ))}
+            {channel.videos.map((video) => {
+              const slug = video.title
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/(^-|-$)+/g, "");
+
+              return (
+                <Link
+                  key={video._id}
+                  to={`/video/${video._id}/${slug}`}
+                  className="bg-gray-100 rounded-lg p-2 block hover:shadow-md"
+                >
+                  <img
+                    src={video.thumbnailUrl}
+                    alt={video.title}
+                    className="rounded-lg"
+                  />
+                  <h3 className="text-sm font-medium mt-2">{video.title}</h3>
+                </Link>
+              );
+            })}
           </div>
         ) : (
           <p className="text-gray-500">No videos yet</p>

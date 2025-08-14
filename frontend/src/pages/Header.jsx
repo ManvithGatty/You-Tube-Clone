@@ -1,9 +1,8 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../redux/authSlice.js";
 import { useState } from "react";
 import { MdMenu, MdSearch } from "react-icons/md";
-import { useNavigate } from "react-router-dom";
 
 export default function Header() {
   const { user } = useSelector((state) => state.auth);
@@ -12,11 +11,19 @@ export default function Header() {
   const navigate = useNavigate();
 
   const handleSearch = (e) => {
-  e.preventDefault();
-  if (search.trim()) {
-    navigate(`/search/${encodeURIComponent(search)}`);
-  }
-};
+    e.preventDefault();
+    if (search.trim()) {
+      navigate(`/search/${encodeURIComponent(search)}`);
+    }
+  };
+
+  const goToMyChannel = () => {
+    if (user?.channelId) {
+      navigate(`/channel/${user.channelId}`);
+    } else {
+      navigate(`/channel`); // no id, ChannelPage will show create form
+    }
+  };
 
   return (
     <header className="bg-white shadow-sm px-4 py-2 flex items-center justify-between sticky top-0 z-50">
@@ -56,22 +63,21 @@ export default function Header() {
       <div className="flex items-center space-x-4">
         {user ? (
           <>
-            {user.channelId && (
-              <Link
-                to={`/channel/${user.channelId}`}
-                className="text-sm border border-gray-300 px-3 py-1 rounded hover:bg-gray-100"
-              >
-                My Channel
-              </Link>
-            )}
+            {/* Avatar and Username link to My Channel */}
             {user.avatar && (
               <img
                 src={user.avatar}
                 alt="avatar"
-                className="w-8 h-8 rounded-full"
+                className="w-8 h-8 rounded-full cursor-pointer"
+                onClick={goToMyChannel}
               />
             )}
-            <span className="text-sm">{user.username}</span>
+            <span
+              className="text-sm font-medium cursor-pointer"
+              onClick={goToMyChannel}
+            >
+              {user.username}
+            </span>
             <button
               onClick={() => dispatch(logout())}
               className="text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"

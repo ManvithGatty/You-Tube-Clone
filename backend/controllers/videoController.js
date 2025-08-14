@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Video from "../models/Video.js";
 import Channel from "../models/Channel.js";
 
@@ -6,6 +7,11 @@ export const createVideo = async (req, res) => {
   try {
     const { title, thumbnailUrl, videoUrl, description, channelId, category } =
       req.body;
+
+    // Validate channelId
+    if (!mongoose.Types.ObjectId.isValid(channelId)) {
+      return res.status(400).json({ message: "Invalid channel ID" });
+    }
 
     const channel = await Channel.findById(channelId);
     if (!channel) return res.status(404).json({ message: "Channel not found" });
@@ -27,17 +33,30 @@ export const createVideo = async (req, res) => {
 
     await video.save();
 
-    // Add video to channel's video list
+    if (!Array.isArray(channel.videos)) {
+      channel.videos = [];
+    }
     channel.videos.push(video._id);
     await channel.save();
 
-    res.status(201).json(video);
+    const updatedChannel = await Channel.findById(channelId)
+      .populate({
+        path: "videos",
+        select: "title thumbnailUrl views uploadDate",
+      })
+      .populate("owner", "username avatarUrl");
+
+    res.status(201).json({
+      message: "Video uploaded successfully",
+      video,
+      channel: updatedChannel,
+    });
   } catch (err) {
+    console.error("Video upload error:", err);
     res.status(500).json({ message: err.message });
   }
 };
 
-// Get all videos
 // Get all videos
 export const getVideos = async (req, res) => {
   try {
@@ -46,24 +65,31 @@ export const getVideos = async (req, res) => {
       .populate({
         path: "channelId",
         select: "_id channelName",
-        options: { strictPopulate: false }, // prevents errors if missing
+        options: { strictPopulate: false },
       });
     res.json(videos);
   } catch (err) {
+    console.error("Error fetching videos:", err);
     res.status(500).json({ message: err.message });
   }
 };
 
-
 // Get video by ID
 export const getVideo = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "Invalid video ID" });
+    }
+
     const video = await Video.findById(req.params.id)
       .populate("uploader", "username avatar")
       .populate("channelId", "channelName");
+
     if (!video) return res.status(404).json({ message: "Video not found" });
+
     res.json(video);
   } catch (err) {
+    console.error("Error fetching video:", err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -71,6 +97,10 @@ export const getVideo = async (req, res) => {
 // Update video
 export const updateVideo = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "Invalid video ID" });
+    }
+
     const video = await Video.findById(req.params.id);
     if (!video) return res.status(404).json({ message: "Video not found" });
 
@@ -80,8 +110,10 @@ export const updateVideo = async (req, res) => {
 
     Object.assign(video, req.body);
     await video.save();
+
     res.json(video);
   } catch (err) {
+    console.error("Error updating video:", err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -89,6 +121,10 @@ export const updateVideo = async (req, res) => {
 // Delete video
 export const deleteVideo = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "Invalid video ID" });
+    }
+
     const video = await Video.findById(req.params.id);
     if (!video) return res.status(404).json({ message: "Video not found" });
 
@@ -99,6 +135,7 @@ export const deleteVideo = async (req, res) => {
     await video.deleteOne();
     res.json({ message: "Video deleted successfully" });
   } catch (err) {
+    console.error("Error deleting video:", err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -116,13 +153,13 @@ export const searchVideos = async (req, res) => {
       $or: [
         { title: { $regex: query, $options: "i" } },
         { description: { $regex: query, $options: "i" } },
-        { category: { $regex: query, $options: "i" } }
-      ]
+        { category: { $regex: query, $options: "i" } },
+      ],
     })
       .populate({
         path: "channelId",
         select: "_id channelName",
-        options: { strictPopulate: false } // prevents throwing error
+        options: { strictPopulate: false },
       })
       .sort({ uploadDate: -1 });
 
@@ -137,12 +174,15 @@ export const searchVideos = async (req, res) => {
 export const getVideosByCategory = async (req, res) => {
   try {
     const { category } = req.params;
-    const videos = await Video.find({ category: { $regex: category, $options: "i" } })
+    const videos = await Video.find({
+      category: { $regex: category, $options: "i" },
+    })
       .populate("channelId", "channelName")
       .sort({ uploadDate: -1 });
 
     res.json(videos);
   } catch (err) {
+    console.error("Error fetching videos by category:", err);
     res.status(500).json({ message: "Server error" });
   }
 };

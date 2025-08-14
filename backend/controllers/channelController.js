@@ -93,7 +93,7 @@ export const deleteChannel = async (req, res) => {
   }
 };
 
-// Subscribe / Unsubscribe
+// Subscribe / Unsubscribe toggle
 export const toggleSubscribe = async (req, res) => {
   try {
     const { id } = req.params; // channel ID
@@ -129,7 +129,7 @@ export const toggleSubscribe = async (req, res) => {
 
     res.json({
       subscribed: !isSubscribed,
-      subscribers: channel.subscribers, // ✅ Added
+      subscribers: channel.subscribers, // full updated list
       subCount: channel.subscribers.length
     });
   } catch (err) {
@@ -137,3 +137,4 @@ export const toggleSubscribe = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
