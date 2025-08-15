@@ -3,6 +3,7 @@ import Channel from "../models/Channel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+// Check whether the user is registered
 export const registerUser = async (req, res) => {
   try {
     const { username, email, password, avatar } = req.body;
@@ -44,6 +45,8 @@ export const registerUser = async (req, res) => {
   }
 };
 
+
+// Logins the User if registered
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;

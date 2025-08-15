@@ -8,7 +8,7 @@ export const searchVideos = async (req, res) => {
       return res.status(400).json({ message: "Search query is required" });
 
     const videos = await Video.find({
-      title: { $regex: q, $options: "i" }, // case-insensitive search
+      title: { $regex: q, $options: "i" }, 
     })
       .populate("uploader", "username")
       .populate("channelId", "channelName");
@@ -18,6 +18,8 @@ export const searchVideos = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+
 
 // Filter videos by category
 export const filterVideos = async (req, res) => {

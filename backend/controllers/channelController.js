@@ -33,6 +33,7 @@ export const createChannel = async (req, res) => {
 };
 
 
+
 // Get channel details
 export const getChannel = async (req, res) => {
   try {
@@ -54,7 +55,6 @@ export const getChannel = async (req, res) => {
       return res.status(404).json({ message: "Channel not found" });
     }
 
-    // Shape the response to always include these fields
     res.json({
       _id: channel._id,
       channelName: channel.channelName,
@@ -91,6 +91,8 @@ export const updateChannel = async (req, res) => {
   }
 };
 
+
+
 // Delete channel
 export const deleteChannel = async (req, res) => {
   try {
@@ -109,10 +111,11 @@ export const deleteChannel = async (req, res) => {
 };
 
 
+
 // Subscribe / Unsubscribe toggle
 export const toggleSubscribe = async (req, res) => {
   try {
-    const { id: channelId } = req.params; // channel ID
+    const { id: channelId } = req.params; 
     const userId = req.user.id;
 
     if (!mongoose.Types.ObjectId.isValid(channelId)) {

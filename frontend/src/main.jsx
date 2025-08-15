@@ -8,7 +8,7 @@ import store from "./redux/store";
 import "./pages/style.css";
 import App from "./App.jsx";
 
-// Lazy load pages
+// Lazy loading
 const Home = lazy(() => import("./pages/Home.jsx"));
 const Login = lazy(() => import("./pages/Login.jsx"));
 const Register = lazy(() => import("./pages/Register.jsx"));

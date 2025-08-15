@@ -1,4 +1,3 @@
-// App.jsx (or your layout component)
 import { useState } from "react";
 import Header from "./pages/Header.jsx";
 import Sidebar from "./pages/Sidebar.jsx";

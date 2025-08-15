@@ -57,6 +57,8 @@ export const createVideo = async (req, res) => {
   }
 };
 
+
+
 // Get all videos
 export const getVideos = async (req, res) => {
   try {
@@ -75,6 +77,7 @@ export const getVideos = async (req, res) => {
 };
 
 
+
 // Get video by ID
 export const getVideo = async (req, res) => {
   try {
@@ -86,7 +89,7 @@ export const getVideo = async (req, res) => {
       .populate("uploader", "username avatar")
       .populate({
         path: "channelId",
-        select: "channelName subscribers", // include subscribers
+        select: "channelName subscribers", 
       })
       .populate("comments.userId", "username avatar");
 
@@ -102,6 +105,7 @@ export const getVideo = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 
 // Update video
@@ -128,6 +132,8 @@ export const updateVideo = async (req, res) => {
   }
 };
 
+
+
 // Delete video
 export const deleteVideo = async (req, res) => {
   try {
@@ -149,6 +155,8 @@ export const deleteVideo = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+
 
 // Search video
 export const searchVideos = async (req, res) => {
@@ -183,6 +191,8 @@ export const searchVideos = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
 
 // Get videos by category
 export const getVideosByCategory = async (req, res) => {

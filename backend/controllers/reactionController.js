@@ -6,7 +6,6 @@ export const likeVideo = async (req, res) => {
     const video = await Video.findById(req.params.id);
     if (!video) return res.status(404).json({ message: "Video not found" });
 
-    // Ensure arrays exist
     video.likes = video.likes || [];
     video.dislikes = video.dislikes || [];
 
@@ -27,13 +26,14 @@ export const likeVideo = async (req, res) => {
   }
 };
 
+
+
 // Dislike a video
 export const dislikeVideo = async (req, res) => {
   try {
     const video = await Video.findById(req.params.id);
     if (!video) return res.status(404).json({ message: "Video not found" });
 
-    // Ensure arrays exist
     video.likes = video.likes || [];
     video.dislikes = video.dislikes || [];
 

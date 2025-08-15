@@ -18,6 +18,6 @@ router.get("/search", searchVideos); //Search video
 router.get("/:id", getVideo); // Get single video
 router.put("/:id", authMiddleware, updateVideo); // Update video
 router.delete("/:id", authMiddleware, deleteVideo); // Delete video
-router.get("/category/:category", getVideosByCategory);
+router.get("/category/:category", getVideosByCategory); //get videos from category
 
 export default router;

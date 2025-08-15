@@ -32,7 +32,6 @@ export default function Register() {
         password: formData.password,
       });
 
-      // Extract token & user
       const { token, user } = res.data;
 
       // Save to Redux & localStorage

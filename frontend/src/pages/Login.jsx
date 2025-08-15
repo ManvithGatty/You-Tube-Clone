@@ -20,7 +20,6 @@ export default function Login() {
     try {
       const res = await API.post("/auth/login", formData);
 
-      // Make sure res.data contains both token and user
       const { token, user } = res.data;
 
       // Save to Redux and localStorage

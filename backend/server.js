@@ -10,6 +10,7 @@ import commentRoutes from "./routes/commentRoutes.js";
 import searchRoutes from "./routes/searchRoutes.js";
 import reactionRoutes from "./routes/reactionRoutes.js";
 
+// Database connection
 dotenv.config();
 connectDB();
 

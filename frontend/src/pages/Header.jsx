@@ -1,4 +1,3 @@
-// Header.jsx
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../redux/authSlice.js";
@@ -22,7 +21,6 @@ export default function Header({ collapsed, setCollapsed }) {
   if (user?.channelId) {
     navigate(`/channel/${user.channelId}`);
   } else {
-    // Pass user.id so ChannelPage knows it's the owner visiting their own channel
     navigate(`/channel/${user.id}`);
   }
 };
@@ -31,7 +29,6 @@ export default function Header({ collapsed, setCollapsed }) {
     <header className="bg-white shadow-sm px-4 py-2 flex items-center justify-between sticky top-0 z-50">
       {/* Left Section */}
       <div className="flex items-center space-x-4">
-        {/* Collapse Toggle */}
         <button
           className="p-2 hover:bg-gray-200 rounded-full"
           onClick={() => setCollapsed(!collapsed)}

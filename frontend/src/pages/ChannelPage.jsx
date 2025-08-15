@@ -82,7 +82,7 @@ export default function ChannelPage() {
       dispatch(setCredentials({ user: updatedUser, token }));
       localStorage.setItem("user", JSON.stringify(updatedUser));
 
-      // ✅ Navigate immediately to new channel page
+      // Navigate immediately to new channel page
       navigate(`/channel/${newChannelId}`, { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong");
@@ -188,7 +188,7 @@ export default function ChannelPage() {
 
   if (loading) return <div className="p-4">Loading...</div>;
 
-  // CREATE FORM VIEW
+  // Create form view
   if (user?.id === channelId && !user?.channelId) {
     return (
       <div className="max-w-lg mx-auto p-6">
@@ -238,12 +238,12 @@ export default function ChannelPage() {
     );
   }
 
-  // ERROR VIEW
+  // Error view
   if (error) {
     return <div className="p-4 text-red-600">{error}</div>;
   }
 
-  // CHANNEL VIEW
+  // Channel view
   return (
     <div className="p-4">
       <div
