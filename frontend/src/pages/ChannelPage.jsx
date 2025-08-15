@@ -68,6 +68,7 @@ export default function ChannelPage() {
     e.preventDefault();
     setCreating(true);
     setError("");
+
     try {
       const res = await API.post(
         "/channels",
@@ -75,11 +76,14 @@ export default function ChannelPage() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      const updatedUser = { ...user, channelId: res.data._id };
+      const newChannelId = res.data._id;
+
+      const updatedUser = { ...user, channelId: newChannelId };
       dispatch(setCredentials({ user: updatedUser, token }));
       localStorage.setItem("user", JSON.stringify(updatedUser));
 
-      navigate(`/channel/${res.data._id}`);
+      // ✅ Navigate immediately to new channel page
+      navigate(`/channel/${newChannelId}`, { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong");
     } finally {
@@ -211,7 +215,9 @@ export default function ChannelPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">Channel Banner URL</label>
+            <label className="block text-sm font-medium">
+              Channel Banner URL
+            </label>
             <input
               type="text"
               value={channelBanner}

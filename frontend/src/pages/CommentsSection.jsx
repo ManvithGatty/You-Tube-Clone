@@ -2,7 +2,10 @@ import { useState } from "react";
 import API from "../api/axios.js";
 import { useSelector } from "react-redux";
 
-export default function CommentsSection({ videoId, comments: initialComments }) {
+export default function CommentsSection({
+  videoId,
+  comments: initialComments,
+}) {
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState(initialComments || []);
   const [editingCommentId, setEditingCommentId] = useState(null);
@@ -12,14 +15,23 @@ export default function CommentsSection({ videoId, comments: initialComments }) 
   // Add comment
   const handleAddComment = async (e) => {
     e.preventDefault();
+
     if (!token) {
       alert("You must be logged in to comment");
       return;
     }
+
+    if (!commentText.trim()) {
+      alert("Comment cannot be empty");
+      return;
+    }
+
     try {
-      const res = await API.post(`/comments/${videoId}`, { text: commentText }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await API.post(
+        `/comments/${videoId}`,
+        { text: commentText.trim() },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setComments(res.data);
       setCommentText("");
     } catch (err) {
@@ -36,9 +48,13 @@ export default function CommentsSection({ videoId, comments: initialComments }) 
   // Save edit
   const handleEditComment = async (commentId) => {
     try {
-      const res = await API.put(`/comments/${videoId}/${commentId}`, { text: editText }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await API.put(
+        `/comments/${videoId}/${commentId}`,
+        { text: editText },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setComments(res.data);
       setEditingCommentId(null);
       setEditText("");
@@ -52,9 +68,9 @@ export default function CommentsSection({ videoId, comments: initialComments }) 
     if (!window.confirm("Delete this comment?")) return;
     try {
       await API.delete(`/comments/${videoId}/${commentId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
-      setComments(comments.filter(c => c._id !== commentId));
+      setComments(comments.filter((c) => c._id !== commentId));
     } catch (err) {
       console.error(err);
     }
@@ -77,11 +93,15 @@ export default function CommentsSection({ videoId, comments: initialComments }) 
       </form>
 
       <div className="space-y-4">
-        {comments.length === 0 && <p className="text-gray-500">No comments yet</p>}
+        {comments.length === 0 && (
+          <p className="text-gray-500">No comments yet</p>
+        )}
         {comments.map((c) => (
           <div key={c._id} className="border-b pb-2">
-            <p className="text-sm font-semibold">{c.userId?.username || "Anonymous"}</p>
-            
+            <p className="text-sm font-semibold">
+              {c.userId?.username || "Anonymous"}
+            </p>
+
             {editingCommentId === c._id ? (
               <div className="flex space-x-2">
                 <input
