@@ -108,7 +108,7 @@ export const deleteChannel = async (req, res) => {
   }
 };
 
-// Subscribe / Unsubscribe toggle
+
 // Subscribe / Unsubscribe toggle
 export const toggleSubscribe = async (req, res) => {
   try {

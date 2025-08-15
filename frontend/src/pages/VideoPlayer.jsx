@@ -3,17 +3,18 @@ import { useParams, Link } from "react-router-dom";
 import API from "../api/axios.js";
 import { MdThumbUp, MdThumbDown } from "react-icons/md";
 import CommentsSection from "./CommentsSection.jsx";
+import { useSelector } from "react-redux";
 
 export default function VideoPlayer() {
   const { id } = useParams();
+  const { user, token } = useSelector((state) => state.auth);
+
   const [video, setVideo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [likes, setLikes] = useState(0);
   const [dislikes, setDislikes] = useState(0);
   const [subscribed, setSubscribed] = useState(false);
   const [subCount, setSubCount] = useState(0);
-
-  const loggedInUserId = localStorage.getItem("userId");
 
   useEffect(() => {
     const fetchVideo = async () => {
@@ -22,9 +23,9 @@ export default function VideoPlayer() {
         setVideo(res.data);
         setLikes(res.data.likes?.length || 0);
         setDislikes(res.data.dislikes?.length || 0);
-        setSubCount(res.data.channelId?.subscribers?.length || 0);
+        setSubCount(res.data.subCount || 0);
 
-        if (res.data.channelId?.subscribers?.includes(loggedInUserId)) {
+        if (res.data.subscriberIds?.includes(user?.id)) {
           setSubscribed(true);
         }
       } catch (err) {
@@ -34,11 +35,13 @@ export default function VideoPlayer() {
       }
     };
     fetchVideo();
-  }, [id, loggedInUserId]);
+  }, [id, user?.id]);
 
   const handleLike = async () => {
     try {
-      const res = await API.post(`/videos/${id}/like`);
+      const res = await API.post(`/videos/${id}/like`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setLikes(res.data.likes);
       setDislikes(res.data.dislikes);
     } catch (err) {
@@ -48,7 +51,9 @@ export default function VideoPlayer() {
 
   const handleDislike = async () => {
     try {
-      const res = await API.post(`/videos/${id}/dislike`);
+      const res = await API.post(`/videos/${id}/dislike`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setLikes(res.data.likes);
       setDislikes(res.data.dislikes);
     } catch (err) {
@@ -59,7 +64,11 @@ export default function VideoPlayer() {
   const handleSubscribe = async () => {
     try {
       if (!video?.channelId?._id) return;
-      const res = await API.post(`/channels/${video.channelId._id}/subscribe`);
+      const res = await API.post(
+        `/channels/${video.channelId._id}/subscribe`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setSubscribed(res.data.subscribed);
       setSubCount(res.data.subCount);
     } catch (err) {
@@ -72,7 +81,6 @@ export default function VideoPlayer() {
 
   return (
     <div className="p-4 max-w-5xl mx-auto">
-      {/* Video player */}
       <div className="aspect-w-16 aspect-h-9 mb-4">
         <iframe
           src={video.videoUrl}
@@ -83,7 +91,6 @@ export default function VideoPlayer() {
         ></iframe>
       </div>
 
-      {/* Video details */}
       <h1 className="text-xl font-bold mb-2">{video.title}</h1>
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center space-x-4">
@@ -123,10 +130,8 @@ export default function VideoPlayer() {
         </div>
       </div>
 
-      {/* Description */}
       <p className="mb-6">{video.description}</p>
 
-      {/* Comments */}
       <CommentsSection videoId={id} comments={video.comments || []} />
     </div>
   );

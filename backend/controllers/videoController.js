@@ -61,23 +61,19 @@ export const createVideo = async (req, res) => {
 export const getVideos = async (req, res) => {
   try {
     const videos = await Video.find()
-      .populate("uploader", "username avatar") // keep uploader's basic info
+      .populate("uploader", "username")
       .populate({
         path: "channelId",
         select: "_id channelName owner",
-        populate: {
-          path: "owner",
-          select: "username avatar", // only send needed fields
-        },
-      })
-      .sort({ uploadDate: -1 });
-
+        populate: { path: "owner", select: "username avatar" }  
+      });
     res.json(videos);
   } catch (err) {
     console.error("Error fetching videos:", err);
     res.status(500).json({ message: err.message });
   }
 };
+
 
 // Get video by ID
 export const getVideo = async (req, res) => {
@@ -88,16 +84,24 @@ export const getVideo = async (req, res) => {
 
     const video = await Video.findById(req.params.id)
       .populate("uploader", "username avatar")
-      .populate("channelId", "channelName");
+      .populate({
+        path: "channelId",
+        select: "channelName subscribers", // include subscribers
+      });
 
     if (!video) return res.status(404).json({ message: "Video not found" });
 
-    res.json(video);
+    res.json({
+      ...video.toObject(),
+      subCount: video.channelId?.subscribers?.length || 0,
+      subscriberIds: video.channelId?.subscribers?.map(id => id.toString()) || [],
+    });
   } catch (err) {
     console.error("Error fetching video:", err);
     res.status(500).json({ message: err.message });
   }
 };
+
 
 // Update video
 export const updateVideo = async (req, res) => {

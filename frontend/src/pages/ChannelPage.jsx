@@ -29,22 +29,19 @@ export default function ChannelPage() {
   const [category, setCategory] = useState("");
   const [uploading, setUploading] = useState(false);
 
-  // Fetch channel or prepare to create
+  // Fetch channel
   useEffect(() => {
-    // Case 1: Logged-in user visits their own channel link but has no channel → create form
     if (user?.id && !user?.channelId && channelId === user?.id) {
       setLoading(false);
       return;
     }
 
-    // Case 2: Invalid MongoDB ObjectId → error
     if (!channelId || !/^[0-9a-fA-F]{24}$/.test(channelId)) {
       setError("Invalid channel ID");
       setLoading(false);
       return;
     }
 
-    // Case 3: Fetch existing channel
     const fetchChannel = async () => {
       try {
         const res = await API.get(`/channels/${channelId}`);
@@ -126,13 +123,7 @@ export default function ChannelPage() {
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      setChannel((prev) => ({
-        ...prev,
-        subscribers: res.data.subscribers,
-      }));
-
-      alert(res.data.subscribed ? "Subscribed!" : "Unsubscribed!");
+      setChannel(res.data); // update full channel object
     } catch (err) {
       alert(err.response?.data?.message || "Error subscribing");
     }
@@ -225,18 +216,18 @@ export default function ChannelPage() {
           <button
             onClick={handleSubscribeToggle}
             className={`px-4 py-2 rounded text-white transition ${
-              channel?.subscribers?.includes(user?.id)
+              channel?.subscriberIds?.includes(user?.id)
                 ? "bg-red-600 hover:bg-red-700"
                 : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
-            {channel?.subscribers?.includes(user?.id)
+            {channel?.subscriberIds?.includes(user?.id)
               ? "Subscribed"
               : "Subscribe"}
           </button>
           <span className="text-gray-600 text-sm">
-            {channel?.subscribers?.length || 0} subscriber
-            {channel?.subscribers?.length !== 1 ? "s" : ""}
+            {channel?.subCount || 0} subscriber
+            {channel?.subCount !== 1 ? "s" : ""}
           </span>
         </div>
       )}
