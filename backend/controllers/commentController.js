@@ -35,7 +35,10 @@ export const editComment = async (req, res) => {
     comment.text = text;
     await video.save();
 
-    res.json(video.comments);
+    const updatedVideo = await Video.findById(req.params.videoId)
+      .populate("comments.userId", "username avatar");
+
+    res.json(updatedVideo.comments);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -57,7 +60,10 @@ export const deleteComment = async (req, res) => {
     comment.deleteOne();
     await video.save();
 
-    res.json({ message: "Comment deleted successfully" });
+    const updatedVideo = await Video.findById(req.params.videoId)
+      .populate("comments.userId", "username avatar");
+
+    res.json(updatedVideo.comments);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

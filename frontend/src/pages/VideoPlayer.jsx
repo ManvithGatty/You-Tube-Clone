@@ -39,9 +39,13 @@ export default function VideoPlayer() {
 
   const handleLike = async () => {
     try {
-      const res = await API.post(`/videos/${id}/like`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await API.post(
+        `/videos/${id}/like`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setLikes(res.data.likes);
       setDislikes(res.data.dislikes);
     } catch (err) {
@@ -51,9 +55,13 @@ export default function VideoPlayer() {
 
   const handleDislike = async () => {
     try {
-      const res = await API.post(`/videos/${id}/dislike`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await API.post(
+        `/videos/${id}/dislike`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setLikes(res.data.likes);
       setDislikes(res.data.dislikes);
     } catch (err) {
@@ -81,14 +89,19 @@ export default function VideoPlayer() {
 
   return (
     <div className="p-4 max-w-5xl mx-auto">
-      <div className="aspect-w-16 aspect-h-9 mb-4">
-        <iframe
-          src={video.videoUrl}
-          title={video.title}
-          className="w-full h-[500px]"
-          frameBorder="0"
-          allowFullScreen
-        ></iframe>
+      <div className="w-full flex justify-center mb-4">
+        <div
+          className="relative w-full"
+          style={{ paddingTop: "56.25%" }}
+        >
+          <iframe
+            src={video.videoUrl}
+            title={video.title}
+            className="absolute top-0 left-0 w-full h-full rounded-lg"
+            frameBorder="0"
+            allowFullScreen
+          ></iframe>
+        </div>
       </div>
 
       <h1 className="text-xl font-bold mb-2">{video.title}</h1>

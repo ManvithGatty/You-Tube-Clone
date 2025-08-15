@@ -29,7 +29,25 @@ export default function ChannelPage() {
   const [category, setCategory] = useState("");
   const [uploading, setUploading] = useState(false);
 
+  // Edit video states
+  const [editVideoId, setEditVideoId] = useState(null);
+
   // Fetch channel
+  const fetchChannel = async () => {
+    try {
+      const res = await API.get(`/channels/${channelId}`);
+      setChannel(res.data);
+    } catch (err) {
+      if (err.response?.status === 404) {
+        setError("Channel not found");
+      } else {
+        setError("Failed to load channel");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (user?.id && !user?.channelId && channelId === user?.id) {
       setLoading(false);
@@ -42,20 +60,6 @@ export default function ChannelPage() {
       return;
     }
 
-    const fetchChannel = async () => {
-      try {
-        const res = await API.get(`/channels/${channelId}`);
-        setChannel(res.data);
-      } catch (err) {
-        if (err.response?.status === 404) {
-          setError("Channel not found");
-        } else {
-          setError("Failed to load channel");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchChannel();
   }, [channelId, user]);
 
@@ -83,36 +87,81 @@ export default function ChannelPage() {
     }
   };
 
-  // Upload video
-  const handleUploadVideo = async (e) => {
+  // Upload or update video
+  const handleUploadOrUpdateVideo = async (e) => {
     e.preventDefault();
     setUploading(true);
     try {
-      await API.post(
-        "/videos",
-        {
-          title,
-          description: videoDescription,
-          thumbnailUrl,
-          videoUrl,
-          category,
-          channelId,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      const res = await API.get(`/channels/${channelId}`);
-      setChannel(res.data);
+      if (editVideoId) {
+        // Update
+        await API.put(
+          `/videos/${editVideoId}`,
+          {
+            title,
+            description: videoDescription,
+            thumbnailUrl,
+            videoUrl,
+            category,
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } else {
+        // Upload
+        await API.post(
+          "/videos",
+          {
+            title,
+            description: videoDescription,
+            thumbnailUrl,
+            videoUrl,
+            category,
+            channelId,
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+      await fetchChannel();
       setShowUploadForm(false);
-      setTitle("");
-      setVideoDescription("");
-      setThumbnailUrl("");
-      setVideoUrl("");
-      setCategory("");
+      resetVideoForm();
     } catch (err) {
-      alert(err.response?.data?.message || "Upload failed");
+      alert(err.response?.data?.message || "Action failed");
     } finally {
       setUploading(false);
     }
+  };
+
+  // Delete video
+  const handleDeleteVideo = async (videoId) => {
+    if (!window.confirm("Are you sure you want to delete this video?")) return;
+    try {
+      await API.delete(`/videos/${videoId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      await fetchChannel();
+    } catch (err) {
+      alert(err.response?.data?.message || "Delete failed");
+    }
+  };
+
+  // Prepare edit form
+  const handleEditVideo = (video) => {
+    setEditVideoId(video._id);
+    setTitle(video.title);
+    setVideoDescription(video.description || "");
+    setThumbnailUrl(video.thumbnailUrl);
+    setVideoUrl(video.videoUrl);
+    setCategory(video.category || "");
+    setShowUploadForm(true);
+  };
+
+  // Reset form
+  const resetVideoForm = () => {
+    setEditVideoId(null);
+    setTitle("");
+    setVideoDescription("");
+    setThumbnailUrl("");
+    setVideoUrl("");
+    setCategory("");
   };
 
   // Subscribe toggle
@@ -205,7 +254,10 @@ export default function ChannelPage() {
       {isOwner ? (
         <div className="mt-4">
           <button
-            onClick={() => setShowUploadForm(!showUploadForm)}
+            onClick={() => {
+              resetVideoForm();
+              setShowUploadForm(!showUploadForm);
+            }}
             className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
           >
             {showUploadForm ? "Cancel" : "Upload Video"}
@@ -234,7 +286,7 @@ export default function ChannelPage() {
 
       {showUploadForm && (
         <form
-          onSubmit={handleUploadVideo}
+          onSubmit={handleUploadOrUpdateVideo}
           className="mt-4 space-y-4 bg-gray-50 p-4 rounded"
         >
           <input
@@ -279,7 +331,13 @@ export default function ChannelPage() {
             disabled={uploading}
             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
           >
-            {uploading ? "Uploading..." : "Upload"}
+            {uploading
+              ? editVideoId
+                ? "Updating..."
+                : "Uploading..."
+              : editVideoId
+              ? "Update Video"
+              : "Upload Video"}
           </button>
         </form>
       )}
@@ -294,18 +352,35 @@ export default function ChannelPage() {
                 .replace(/[^a-z0-9]+/g, "-")
                 .replace(/(^-|-$)+/g, "");
               return (
-                <Link
+                <div
                   key={video._id}
-                  to={`/video/${video._id}/${slug}`}
-                  className="bg-gray-100 rounded-lg p-2 block hover:shadow-md"
+                  className="bg-gray-100 rounded-lg p-2 hover:shadow-md"
                 >
-                  <img
-                    src={video.thumbnailUrl}
-                    alt={video.title}
-                    className="rounded-lg"
-                  />
-                  <h3 className="text-sm font-medium mt-2">{video.title}</h3>
-                </Link>
+                  <Link to={`/video/${video._id}/${slug}`}>
+                    <img
+                      src={video.thumbnailUrl}
+                      alt={video.title}
+                      className="rounded-lg"
+                    />
+                    <h3 className="text-sm font-medium mt-2">{video.title}</h3>
+                  </Link>
+                  {isOwner && (
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        onClick={() => handleEditVideo(video)}
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-xs"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteVideo(video._id)}
+                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>
