@@ -10,7 +10,7 @@ export const addComment = async (req, res) => {
     await video.save();
 
     const updatedVideo = await Video.findById(req.params.videoId)
-      .populate("comments.userId", "username");
+      .populate("comments.userId", "username avatar");
 
     res.status(201).json(updatedVideo.comments);
   } catch (err) {

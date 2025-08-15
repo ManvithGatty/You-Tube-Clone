@@ -87,7 +87,8 @@ export const getVideo = async (req, res) => {
       .populate({
         path: "channelId",
         select: "channelName subscribers", // include subscribers
-      });
+      })
+      .populate("comments.userId", "username avatar");
 
     if (!video) return res.status(404).json({ message: "Video not found" });
 
